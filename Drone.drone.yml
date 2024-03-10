@@ -1,0 +1,27 @@
+kind: pipeline
+type: kubernetes
+name: default
+
+steps:
+- name: build
+  image: maven:3-jdk-10
+  commands:
+    - echo "Compiling the code..."
+    - mvn clean package
+    - docker build -t yourdockerusername/helloworld:latest .
+    - docker push yourdockerusername/helloworld:latest
+
+- name: test
+  image: maven:3-jdk-10
+  commands:
+    - echo "Running tests"
+    - java -cp target/helloworld-1.1.jar com.coveros.demo.helloworld.HelloWorld
+
+- name: deploy
+  image: bitnami/kubectl:latest
+  settings:
+    kubernetes_server: https://kubernetes.default
+    kubernetes_certificate: $CERTIFICATE
+    kubernetes_token: $TOKEN
+  commands:
+    - kubectl apply -f deployment.yaml
