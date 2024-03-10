@@ -1,0 +1,24 @@
+# Drone CI File!
+# Commit Message: Drone! Captain Canary is here! 
+
+kind: pipeline
+type: kubernetes
+name: default
+
+steps:
+
+- name: build
+  image: maven:3-jdk-10
+  commands:
+    - mvn clean package
+    - docker build -t yourdockerusername/myapp:latest .
+    - docker push yourdockerusername/myapp:latest
+
+- name: deploy
+  image: bitnami/kubectl:latest
+  settings:
+    kubernetes_server: https://kubernetes.default
+    kubernetes_certificate: $CERTIFICATE
+    kubernetes_token: $TOKEN
+  commands:
+    - kubectl apply -f deployment.yaml
